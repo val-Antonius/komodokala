@@ -1,0 +1,209 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// CORE MODELS
+// ============================================
+
+model Package {
+  id           String        @id @default(cuid())
+  name         String
+  slug         String        @unique
+  description  String        @db.Text
+  shortDesc    String?       @db.VarChar(200)
+  duration     Int           // days
+  maxPax       Int
+  minPax       Int           @default(1)
+  price        Int           // IDR per person
+  images       String[]
+  itinerary    Json          // [{day: 1, title: "", description: ""}]
+  inclusions   String[]
+  exclusions   String[]
+  highlights   String[]
+  boatType     String?
+  difficulty   String?       // easy/moderate/challenging
+  category     String        // budget/standard/premium
+  isActive     Boolean       @default(true)
+  featured     Boolean       @default(false)
+  destinations Destination[] @relation("PackageDestinations")
+  bookings     Booking[]
+  reviews      Review[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([slug])
+  @@index([category])
+  @@index([isActive])
+}
+
+model Destination {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String    @db.Text
+  images      String[]
+  coordinates String?   // lat,lng
+  packages    Package[] @relation("PackageDestinations")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([slug])
+}
+
+model Booking {
+  id            String        @id @default(cuid())
+  bookingRef    String        @unique // LBJ-20260204-001
+  packageId     String
+  package       Package       @relation(fields: [packageId], references: [id])
+  userId        String?
+  user          User?         @relation(fields: [userId], references: [id])
+  guestName     String
+  guestEmail    String
+  guestPhone    String
+  guestCountry  String?
+  travelDate    DateTime
+  numGuests     Int
+  basePrice     Int           // price per person at booking time
+  totalPrice    Int           // basePrice * numGuests
+  specialReq    String?       @db.Text
+  dietaryReq    String?
+  status        BookingStatus @default(PENDING)
+  paymentStatus PaymentStatus @default(PENDING)
+  payments      Payment[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([bookingRef])
+  @@index([userId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([travelDate])
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  PARTIAL
+  PAID
+  REFUNDED
+}
+
+model Payment {
+  id            String    @id @default(cuid())
+  bookingId     String
+  booking       Booking   @relation(fields: [bookingId], references: [id])
+  amount        Int
+  paymentMethod String    // bank_transfer/gopay/ovo/credit_card/qris
+  transactionId String?   @unique
+  status        String    // pending/success/failed/expired
+  paidAt        DateTime?
+  expiresAt     DateTime?
+  paymentProof  String?   // URL for bank transfer proof
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([bookingId])
+  @@index([status])
+}
+
+// ============================================
+// USER & AUTH MODELS
+// ============================================
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified DateTime?
+  password      String?   // hashed, null for OAuth
+  phone         String?
+  image         String?
+  country       String?
+  role          UserRole  @default(USER)
+  bookings      Booking[]
+  reviews       Review[]
+  accounts      Account[]
+  sessions      Session[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([email])
+  @@index([role])
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  packageId  String
+  package    Package  @relation(fields: [packageId], references: [id])
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  rating     Int      // 1-5
+  comment    String   @db.Text
+  images     String[]
+  isVerified Boolean  @default(false) // from actual bookings
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([packageId])
+  @@index([userId])
+  @@index([rating])
+}
+
+// ============================================
+// NEXTAUTH MODELS
+// ============================================
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}

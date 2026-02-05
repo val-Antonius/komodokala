@@ -89,5 +89,30 @@ src/components/ui/carousel.tsx
 - **Issues:** 
     - None currently known.
 
+## Phase 2: Trust & Info Pages
+**Status:** ✅ Completed
+
+### Completed Tasks
+- [x] Static Pages (About, How It Works, FAQ) with Premium UI
+- [x] Destinations Index Page with Bento Grid
+- [x] Destination Detail Page with Packages Integration
+- [x] Server Actions for Destinations (`getDestinations`, `getDestinationBySlug`)
+
+### Files Created/Modified
+- `src/app/(marketing)/about/page.tsx` (StatCounter, ScrollReveal)
+- `src/app/(marketing)/how-it-works/page.tsx` (ZigZag Layout)
+- `src/app/(marketing)/faq/page.tsx` (Search & Tabs)
+- `src/app/(marketing)/destinations/page.tsx`
+- `src/app/(marketing)/destinations/[slug]/page.tsx`
+- `src/lib/actions/destinations.ts`
+
+### Verification
+- **Works:** 
+    - Static pages render with correct animations and layouts.
+    - Destinations pages handle DB errors gracefully (showing empty state).
+    - `ScrollReveal` patched for Client Component usage.
+- **Issues:** 
+    - `P1001` Database connection error persists (Network/Env issue), preventing real data display.
+
 ### Next Phase
-- **Phase 2:** Trust & Info Pages (`/destinations`, `/about`)
+- **Phase 3:** Auth & User Dashboard (`/auth/*`, `/dashboard`)

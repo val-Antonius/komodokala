@@ -1,3 +1,5 @@
+"use client";
+
 import { motion } from 'framer-motion';
 import type { ReactNode } from 'react';
 
@@ -8,11 +10,11 @@ interface ScrollRevealProps {
   className?: string;
 }
 
-export function ScrollReveal({ 
-  children, 
-  delay = 0, 
+export function ScrollReveal({
+  children,
+  delay = 0,
   direction = 'up',
-  className = '' 
+  className = ''
 }: ScrollRevealProps) {
   const directions = {
     up: { y: 40, x: 0 },
@@ -23,21 +25,21 @@ export function ScrollReveal({
 
   return (
     <motion.div
-      initial={{ 
-        opacity: 0, 
+      initial={{
+        opacity: 0,
         y: directions[direction].y,
-        x: directions[direction].x 
+        x: directions[direction].x
       }}
-      whileInView={{ 
-        opacity: 1, 
+      whileInView={{
+        opacity: 1,
         y: 0,
-        x: 0 
+        x: 0
       }}
       viewport={{ once: true, margin: '-100px' }}
-      transition={{ 
-        duration: 0.6, 
+      transition={{
+        duration: 0.6,
         delay,
-        ease: [0.25, 0.46, 0.45, 0.94] 
+        ease: [0.25, 0.46, 0.45, 0.94]
       }}
       className={className}
     >

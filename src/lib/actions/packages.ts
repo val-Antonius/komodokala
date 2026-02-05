@@ -1,6 +1,6 @@
 'use server'
 
-import { prisma } from '@/lib/prisma'
+import { prisma, withRetry } from '@/lib/prisma'
 import { cache } from 'react'
 
 export const getPackages = cache(async (params: {
@@ -47,12 +47,15 @@ export const getPackages = cache(async (params: {
     if (sort === 'rating') orderBy = { rating: 'desc' }
 
     try {
-        const packages = await prisma.package.findMany({
-            where,
-            orderBy,
-            include: {
-                destinations: true
-            }
+        // Wrap database query with retry logic
+        const packages = await withRetry(async () => {
+            return await prisma.package.findMany({
+                where,
+                orderBy,
+                include: {
+                    destinations: true
+                }
+            })
         })
         return packages
     } catch (error) {
@@ -63,19 +66,22 @@ export const getPackages = cache(async (params: {
 
 export const getPackageBySlug = cache(async (slug: string) => {
     try {
-        const pkg = await prisma.package.findFirst({
-            where: { slug, isActive: true },
-            include: {
-                destinations: true,
-                reviews: {
-                    include: {
-                        user: true
-                    },
-                    orderBy: {
-                        createdAt: 'desc'
+        // Wrap database query with retry logic
+        const pkg = await withRetry(async () => {
+            return await prisma.package.findFirst({
+                where: { slug, isActive: true },
+                include: {
+                    destinations: true,
+                    reviews: {
+                        include: {
+                            user: true
+                        },
+                        orderBy: {
+                            createdAt: 'desc'
+                        }
                     }
-                }
-            },
+                },
+            })
         })
         return pkg
     } catch (error) {

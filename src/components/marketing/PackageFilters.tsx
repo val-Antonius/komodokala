@@ -17,10 +17,14 @@ export function PackageFilters() {
     const searchParams = useSearchParams()
 
     const [query, setQuery] = useState(searchParams.get('query') || '')
-    const [priceRange, setPriceRange] = useState([
+    // Local state for the slider UI (instant feedback)
+    const [localPriceRange, setLocalPriceRange] = useState([
         Number(searchParams.get('minPrice')) || 0,
         Number(searchParams.get('maxPrice')) || 50000000
     ])
+
+    // Committed state for the actual filter (after sliding stops)
+    const [priceRange, setPriceRange] = useState(localPriceRange)
     const [category, setCategory] = useState(searchParams.get('category') || 'all')
 
     // Debouncing search for query to avoid too many redirects
@@ -99,19 +103,22 @@ export function PackageFilters() {
 
             {/* Price Range */}
             <div className="space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-4">
                     <h3 className="font-semibold text-sm text-slate-900">Price Range</h3>
-                    <span className="text-xs text-muted-foreground">
-                        {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(priceRange[1])}
-                    </span>
+                    <div className="text-xs text-muted-foreground font-medium tabular-nums">
+                        {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(localPriceRange[0])}
+                        {' - '}
+                        {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(localPriceRange[1])}
+                    </div>
                 </div>
                 <Slider
                     defaultValue={[0, 50000000]}
-                    value={priceRange}
+                    value={localPriceRange}
                     max={50000000}
                     step={500000}
                     min={0}
-                    onValueChange={setPriceRange}
+                    onValueChange={setLocalPriceRange}
+                    onValueCommit={setPriceRange}
                     className="py-4"
                 />
                 <div className="flex justify-between text-xs text-slate-500">

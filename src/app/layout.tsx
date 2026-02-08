@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google"; // Keeping these as they are good defaults, or I could switch to Inter to match old project if needed.
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/sections/Navbar";
 import { Footer } from "@/sections/Footer";
 import { Toaster } from "sonner";
+import { NextAuthProvider } from "@/components/providers/NextAuthProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,12 +31,14 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Navbar />
-        <main>
-          {children}
-        </main>
-        <Footer />
-        <Toaster position="top-center" />
+        <NextAuthProvider>
+          <Navbar />
+          <main>
+            {children}
+          </main>
+          <Footer />
+          <Toaster position="top-center" />
+        </NextAuthProvider>
       </body>
     </html>
   );

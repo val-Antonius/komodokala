@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+
 import { useRouter, useSearchParams } from 'next/navigation'
-import { signIn } from 'next-auth/react'
+import { signIn, getSession } from 'next-auth/react'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -30,6 +31,8 @@ export default function LoginPage() {
         resolver: zodResolver(loginSchema)
     })
 
+    // ... inside component ...
+
     const onSubmit = async (data: LoginForm) => {
         setIsLoading(true)
         setError(null)
@@ -44,8 +47,15 @@ export default function LoginPage() {
             if (result?.error) {
                 setError('Invalid email or password')
             } else {
-                router.push(callbackUrl)
+                // Check session to determine redirect
+                const session = await getSession()
                 router.refresh()
+
+                if (session?.user?.role === 'ADMIN') {
+                    router.push('/admin')
+                } else {
+                    router.push(callbackUrl)
+                }
             }
         } catch (error) {
             setError('Something went wrong. Please try again.')

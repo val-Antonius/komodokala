@@ -10,6 +10,9 @@ export default withAuth(
 
         // Redirect authenticated users away from auth pages
         if (isAuthPage && token) {
+            if (token.role === 'ADMIN') {
+                return NextResponse.redirect(new URL('/admin', req.url))
+            }
             return NextResponse.redirect(new URL('/dashboard', req.url))
         }
 
